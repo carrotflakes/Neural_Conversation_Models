@@ -27,7 +27,6 @@ import tensorflow as tf
 
 from  data_utils import *
 from  seq2seq_model import *
-import codecs
 
 tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
@@ -70,10 +69,10 @@ _buckets = [(5, 10), (10, 15), (20, 25), (40, 50)]
 def read_chat_data(data_path,vocabulary_path, max_size=None):
     counter = 0
     vocab, _ = initialize_vocabulary(vocabulary_path)
-    print len(vocab)
-    print max_size
+    print(len(vocab))
+    print(max_size)
     data_set = [[] for _ in _buckets]
-    with codecs.open(data_path, "rb") as fi:
+    with open(data_path) as fi:
         for line in fi.readlines():
             counter += 1
             if max_size!=0 and counter > max_size:
@@ -102,7 +101,7 @@ def create_model(session, forward_only, beam_search, beam_size = 10, attention =
       FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
       FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
       forward_only=forward_only, beam_search=beam_search, beam_size=beam_size, attention=attention)
-  print FLAGS.train_dir
+  print(FLAGS.train_dir)
   ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
 
   # ckpt.model_checkpoint_path ="./big_models/chat_bot.ckpt-183600"
@@ -122,7 +121,7 @@ def create_models(path, en_vocab_size, session, forward_only, beam_search, beam_
       FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
       FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
       forward_only=forward_only, beam_search=beam_search, beam_size=beam_size, attention=attention)
-  print FLAGS.train_dir
+  print(FLAGS.train_dir)
   ckpt = tf.train.get_checkpoint_state(path)
 
   # ckpt.model_checkpoint_path ="./big_models/chat_bot.ckpt-183600"
@@ -195,7 +194,7 @@ def train():
       # Once in a while, we save checkpoint, print statistics, and run evals.
       if current_step % FLAGS.steps_per_checkpoint == 0:
         # Print statistics for the previous epoch.
-        print "Running epochs"
+        print("Running epochs")
         perplexity = math.exp(loss) if loss < 300 else float('inf')
         print ("global step %d learning rate %.4f step-time %.2f perplexity "
                 "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
@@ -241,7 +240,7 @@ def decode():
         sentence = sys.stdin.readline()
         while sentence:
           # Get token-ids for the input sentence.
-          token_ids = sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab)
+          token_ids = sentence_to_token_ids(sentence, vocab)
           # Which bucket does it belong to?
           bucket_id = min([b for b in xrange(len(_buckets))
                            if _buckets[b][0] > len(token_ids)])
@@ -257,14 +256,14 @@ def decode():
           paths = []
           for kk in range(beam_size):
               paths.append([])
-          curr = range(beam_size)
+          curr = list(range(beam_size))
           num_steps = len(path)
           for i in range(num_steps-1, -1, -1):
               for kk in range(beam_size):
                 paths[kk].append(symbol[i][curr[kk]])
                 curr[kk] = path[i][curr[kk]]
           recos = set()
-          print "Replies --------------------------------------->"
+          print("Replies --------------------------------------->")
           for kk in range(beam_size):
               foutputs = [int(logit)  for logit in paths[kk][::-1]]
 
@@ -275,7 +274,7 @@ def decode():
               rec = " ".join([tf.compat.as_str(rev_vocab[output]) for output in foutputs])
               if rec not in recos:
                       recos.add(rec)
-                      print rec
+                      print(rec)
 
           print("> ", "")
           sys.stdout.flush()
