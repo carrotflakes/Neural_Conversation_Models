@@ -106,9 +106,10 @@ def create_model(session, forward_only, beam_search, beam_size = 10, attention =
 
   # ckpt.model_checkpoint_path ="./big_models/chat_bot.ckpt-183600"
   # print ckpt.model_checkpoint_path
-  if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
+  if ckpt:
+    saver = tf.train.import_meta_graph(ckpt.model_checkpoint_path+".meta")
     print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-    model.saver.restore(session, ckpt.model_checkpoint_path)
+    saver.restore(session, ckpt.model_checkpoint_path)
   else:
     print("Created model with fresh parameters.")
     session.run(tf.global_variables_initializer())
@@ -126,9 +127,10 @@ def create_models(path, en_vocab_size, session, forward_only, beam_search, beam_
 
   # ckpt.model_checkpoint_path ="./big_models/chat_bot.ckpt-183600"
   # print ckpt.model_checkpoint_path
-  if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
+  if ckpt:
+    saver = tf.train.import_meta_graph(ckpt.model_checkpoint_path+".meta") 
     print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-    model.saver.restore(session, ckpt.model_checkpoint_path)
+    saver.restore(session, ckpt.model_checkpoint_path)
   else:
     print("Created model with fresh parameters.")
     session.run(tf.global_variables_initializer())
