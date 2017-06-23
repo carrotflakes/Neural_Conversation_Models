@@ -85,8 +85,8 @@ def read_chat_data(data_path,vocabulary_path, max_size=None):
             if len(entities) == 2:
                 source = entities[0]
                 target = entities[1]
-                source_ids = [int(x) for x in sentence_to_token_ids(source,vocab)]
-                target_ids = [int(x) for x in sentence_to_token_ids(target,vocab)]
+                source_ids = [int(x) for x in sentence_to_token_ids(source,vocab,tokenizer=tokenizer)]
+                target_ids = [int(x) for x in sentence_to_token_ids(target,vocab,tokenizer=tokenizer)]
                 target_ids.append(EOS_ID)
                 for bucket_id, (source_size, target_size) in enumerate(_buckets):
                   if len(source_ids) < source_size and len(target_ids) < target_size:
@@ -128,7 +128,7 @@ def create_models(path, en_vocab_size, session, forward_only, beam_search, beam_
   # ckpt.model_checkpoint_path ="./big_models/chat_bot.ckpt-183600"
   # print ckpt.model_checkpoint_path
   if ckpt:
-    saver = tf.train.import_meta_graph(ckpt.model_checkpoint_path+".meta") 
+    saver = tf.train.import_meta_graph(ckpt.model_checkpoint_path+".meta")
     print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
     saver.restore(session, ckpt.model_checkpoint_path)
   else:
@@ -147,7 +147,7 @@ def train():
   attention = FLAGS.attention
 
   normalize_digits=True
-  create_vocabulary(vocab_path, data_path, FLAGS.en_vocab_size )
+  create_vocabulary(vocab_path, data_path, FLAGS.en_vocab_size, tokenizer=tokenizer)
 
 
   with tf.Session() as sess:
@@ -242,7 +242,7 @@ def decode():
         sentence = sys.stdin.readline()
         while sentence:
           # Get token-ids for the input sentence.
-          token_ids = sentence_to_token_ids(sentence, vocab)
+          token_ids = sentence_to_token_ids(sentence, vocab, tokenizer=tokenizer)
           # Which bucket does it belong to?
           bucket_id = min([b for b in xrange(len(_buckets))
                            if _buckets[b][0] > len(token_ids)])
@@ -288,7 +288,7 @@ def decode():
 
         while sentence:
               # Get token-ids for the input sentence.
-              token_ids = sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab)
+              token_ids = sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab, tokenizer=tokenizer)
               # Which bucket does it belong to?
               bucket_id = min([b for b in xrange(len(_buckets))
                                if _buckets[b][0] > len(token_ids)])
@@ -312,7 +312,11 @@ def decode():
               sys.stdout.flush()
               sentence = sys.stdin.readline()
 
+def ja_tokenizer(sentence):
+    sentence = list(sentence)
+    return sentence
 
+tokenizer = ja_tokenizer
 
 def main(_):
   if FLAGS.decode:
